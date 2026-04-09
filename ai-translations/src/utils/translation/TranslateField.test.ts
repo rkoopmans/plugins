@@ -27,7 +27,7 @@ vi.mock('./translateArray', () => ({
 }));
 
 import { translateDefaultFieldValue } from './DefaultTranslation';
-import { translateFieldValue } from './TranslateField';
+import { generateRecordContext, translateFieldValue } from './TranslateField';
 import { translateArray } from './translateArray';
 
 describe('TranslateField', () => {
@@ -140,6 +140,85 @@ describe('TranslateField', () => {
     });
     expect(result[0].content[0].children[0].children[0].value).toBe(
       'Clicca qui',
+    );
+  });
+});
+
+describe('generateRecordContext', () => {
+  it('returns llm_context value when present as a non-empty string', () => {
+    const formValues = {
+      llm_context: 'This is a blog post about cooking',
+      title: { en: 'My Title' },
+    };
+    expect(generateRecordContext(formValues, 'en')).toBe(
+      'Content context: This is a blog post about cooking',
+    );
+  });
+
+  it('falls back to auto-generated context when llm_context is empty', () => {
+    const formValues = {
+      llm_context: '',
+      title: { en: 'My Title' },
+    };
+    expect(generateRecordContext(formValues, 'en')).toBe(
+      'Content context: title: My Title. ',
+    );
+  });
+
+  it('returns llm_context value when present as a localized field', () => {
+    const formValues = {
+      llm_context: { en: 'This is a localized context about cooking' },
+      title: { en: 'My Title' },
+    };
+    expect(generateRecordContext(formValues, 'en')).toBe(
+      'Content context: This is a localized context about cooking',
+    );
+  });
+
+  it('falls back to auto-generated context when localized llm_context has no source locale', () => {
+    const formValues = {
+      llm_context: { fr: 'French only context' },
+      title: { en: 'My Title' },
+    };
+    expect(generateRecordContext(formValues, 'en')).toBe(
+      'Content context: title: My Title. ',
+    );
+  });
+
+  it('falls back to auto-generated context when llm_context is not a string', () => {
+    const formValues = {
+      llm_context: 42,
+      title: { en: 'My Title' },
+    };
+    expect(generateRecordContext(formValues, 'en')).toBe(
+      'Content context: title: My Title. ',
+    );
+  });
+
+  it('falls back to auto-generated context when llm_context key is absent', () => {
+    const formValues = {
+      title: { en: 'My Title' },
+      description: { en: 'My Description' },
+    };
+    expect(generateRecordContext(formValues, 'en')).toBe(
+      'Content context: title: My Title. description: My Description. ',
+    );
+  });
+
+  it('returns empty string when no context fields match', () => {
+    const formValues = {
+      slug: { en: 'my-slug' },
+    };
+    expect(generateRecordContext(formValues, 'en')).toBe('');
+  });
+
+  it('skips auto-generated field values with 300 or more characters', () => {
+    const formValues = {
+      title: { en: 'Short Title' },
+      description: { en: 'a'.repeat(300) },
+    };
+    expect(generateRecordContext(formValues, 'en')).toBe(
+      'Content context: title: Short Title. ',
     );
   });
 });

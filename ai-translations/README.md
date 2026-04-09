@@ -90,13 +90,31 @@ The plugin includes a dedicated page for translating multiple models at once:
 
 ## Contextual Translations
 
-The plugin now supports context-aware translations through the `{recordContext}` placeholder:
+The plugin supports context-aware translations through the `{recordContext}` placeholder. By default, the plugin auto-generates context by scanning fields whose API key contains `title`, `name`, `content`, or `description`.
 
-- **Benefits**:
-  - Better understanding of specialized terminology
-  - Improved consistency across related fields
-  - More accurate translations that respect the overall content meaning
-  - Appropriate tone and style based on context
+### Custom Context via `llm_context` Field
+
+You can override the auto-generated context by adding a **non-localized** field with the API key `llm_context` to your model. When this field contains a non-empty string value, it is used as the record context instead of the auto-generated one.
+
+This is useful when:
+- The auto-detected fields don't capture the right context for your content
+- You want full control over the translation context per record
+- Your model lacks typical context fields (title, description, etc.)
+
+To set it up:
+1. Add a new **Single-line string** or **Multi-line text** field to your model
+2. Set its API key to `llm_context`
+3. Make sure it is **not localized** (it should be a plain string, not per-locale)
+4. Fill it in on your records — when present and non-empty, it replaces the auto-generated context
+
+If `llm_context` is empty or absent, the plugin falls back to the default keyword-based context generation.
+
+### Benefits
+
+- Better understanding of specialized terminology
+- Improved consistency across related fields
+- More accurate translations that respect the overall content meaning
+- Appropriate tone and style based on context
 
 ## ICU Message Format Support
 

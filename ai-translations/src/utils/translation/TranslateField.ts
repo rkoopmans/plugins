@@ -1204,11 +1204,13 @@ function extractLocaleString(
 }
 
 /**
- * Generates descriptive context about a record to improve translation accuracy
+ * Generates descriptive context about a record to improve translation accuracy.
  *
- * This function extracts key information from a record's source locale values
- * to provide context for the AI model, helping it understand the content
- * it's translating. It focuses on title, name, and content fields.
+ * If the record contains a non-localized `llm_context` field with a non-empty
+ * string value, that value is returned as-is and the automatic context
+ * generation is skipped. Otherwise, this function extracts key information from
+ * a record's source locale values (title, name, content, description) to
+ * provide context for the AI model.
  *
  * @param formValues - The current form values from DatoCMS
  * @param sourceLocale - The source locale code
@@ -1219,6 +1221,16 @@ export function generateRecordContext(
   sourceLocale: string,
 ): string {
   if (!formValues) return '';
+
+  const llmContextRaw = formValues.llm_context;
+  // Support both non-localized (plain string) and localized ({ en: '...' }) fields
+  const llmContext =
+    typeof llmContextRaw === 'string'
+      ? llmContextRaw
+      : extractLocaleString(llmContextRaw, sourceLocale);
+  if (llmContext) {
+    return `Content context: ${llmContext}`;
+  }
 
   let contextStr = 'Content context: ';
   let hasAddedContext = false;

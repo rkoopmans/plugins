@@ -71,6 +71,7 @@ export type ctxParamsType = {
   translateWholeRecord: boolean; // Whether to allow entire record translation
   translateBulkRecords: boolean; // Whether to allow bulk records translation in tabular view
   prompt: string; // The prompt template used by the translation logic
+  localeInstructions?: Record<string, string>; // Per-locale custom instructions for the LLM
   modelsToBeExcludedFromThisPlugin: string[]; // List of model API keys to exclude from translation
   rolesToBeExcludedFromThisPlugin: string[]; // List of role IDs to exclude from translation
   apiKeysToBeExcludedFromThisPlugin: string[]; // List of API keys to exclude from translation
@@ -115,6 +116,16 @@ export function isValidCtxParams(obj: unknown): obj is ctxParamsType {
   if (
     p.vendor !== undefined &&
     !VALID_VENDORS.includes(p.vendor as (typeof VALID_VENDORS)[number])
+  ) {
+    return false;
+  }
+
+  // localeInstructions must be a plain object if present
+  if (
+    p.localeInstructions !== undefined &&
+    (typeof p.localeInstructions !== 'object' ||
+      p.localeInstructions === null ||
+      Array.isArray(p.localeInstructions))
   ) {
     return false;
   }
@@ -365,6 +376,7 @@ function isDefaultConfiguration(
   translateWholeRecord: boolean,
   translateBulkRecords: boolean,
   prompt: string,
+  localeInstructions: Record<string, string>,
   modelsToBeExcluded: string[],
   rolesToBeExcluded: string[],
   apiKeysToBeExcluded: string[],
@@ -375,6 +387,7 @@ function isDefaultConfiguration(
     translateWholeRecord === true &&
     translateBulkRecords === true &&
     prompt === defaultPrompt &&
+    Object.keys(localeInstructions).length === 0 &&
     modelsToBeExcluded.length === 0 &&
     rolesToBeExcluded.length === 0 &&
     apiKeysToBeExcluded.length === 0
@@ -440,6 +453,7 @@ type CheckFormDirtyArgs = {
   translateWholeRecord: boolean;
   translateBulkRecords: boolean;
   prompt: string;
+  localeInstructions: Record<string, string>;
   enableDebugging: boolean;
   modelsToBeExcluded: string[];
   rolesToBeExcluded: string[];
@@ -479,6 +493,7 @@ function checkFormDirty(args: CheckFormDirtyArgs): boolean {
     translateWholeRecord,
     translateBulkRecords,
     prompt,
+    localeInstructions,
     enableDebugging,
     modelsToBeExcluded,
     rolesToBeExcluded,
@@ -518,11 +533,16 @@ function checkFormDirty(args: CheckFormDirtyArgs): boolean {
     },
     pluginParams,
   );
+  const savedLocaleInstructions = pluginParams.localeInstructions ?? {};
+  const isLocaleInstructionsDirty =
+    JSON.stringify(localeInstructions) !==
+    JSON.stringify(savedLocaleInstructions);
   const isFeaturesDirty =
     sortedSelectedFields !== sortedConfiguredFields ||
     translateWholeRecord !== (pluginParams.translateWholeRecord ?? true) ||
     translateBulkRecords !== (pluginParams.translateBulkRecords ?? true) ||
     prompt !== (pluginParams.prompt ?? defaultPrompt) ||
+    isLocaleInstructionsDirty ||
     enableDebugging !== (pluginParams.enableDebugging ?? false);
   const isExclusionsDirty =
     [...modelsToBeExcluded].sort().join(',') !==
@@ -649,6 +669,7 @@ export default function ConfigScreen({ ctx }: { ctx: RenderConfigScreenCtx }) {
     translateWholeRecord,
     translateBulkRecords,
     prompt,
+    localeInstructions,
     enableDebugging,
   } = featureToggles;
   const {
@@ -656,6 +677,7 @@ export default function ConfigScreen({ ctx }: { ctx: RenderConfigScreenCtx }) {
     setTranslateWholeRecord,
     setTranslateBulkRecords,
     setPrompt,
+    setLocaleInstructions,
     setEnableDebugging,
   } = featureActions;
 
@@ -790,6 +812,7 @@ export default function ConfigScreen({ ctx }: { ctx: RenderConfigScreenCtx }) {
         translateWholeRecord,
         translateBulkRecords,
         prompt,
+        localeInstructions,
         enableDebugging,
         modelsToBeExcluded,
         rolesToBeExcluded,
@@ -809,6 +832,7 @@ export default function ConfigScreen({ ctx }: { ctx: RenderConfigScreenCtx }) {
       translateWholeRecord,
       translateBulkRecords,
       prompt,
+      localeInstructions,
       deeplUseFree,
       deeplFormality,
       deeplPreserveFormatting,
@@ -868,6 +892,7 @@ export default function ConfigScreen({ ctx }: { ctx: RenderConfigScreenCtx }) {
       translateWholeRecord,
       translateBulkRecords,
       prompt,
+      localeInstructions,
       modelsToBeExcluded,
       rolesToBeExcluded,
       apiKeysToBeExcluded,
@@ -979,6 +1004,56 @@ export default function ConfigScreen({ ctx }: { ctx: RenderConfigScreenCtx }) {
                   id="translation-prompt"
                   aria-labelledby="translation-prompt"
               />
+            </div>
+        )}
+
+        {/* Per-locale custom instructions for translation (not applicable to DeepL) */}
+        {vendor !== 'deepl' && siteLocales.length > 0 && (
+            <div className={s.promptContainer}>
+              <label
+                  className={s.label}
+                  style={{ display: 'flex', alignItems: 'center' }}
+              >
+                Locale-specific instructions
+                <div className={s.tooltipContainer}>
+                  ⓘ
+                  <div className={`${s.tooltipText} ${s.leftAnchorTooltip}`}>
+                    Add custom instructions per locale. For example, &quot;Use
+                    formal tone&quot; for German or &quot;Use simplified
+                    characters&quot; for Chinese. These are appended to the
+                    translation prompt when translating to that locale.
+                  </div>
+                </div>
+              </label>
+              {siteLocales.map((loc) => (
+                  <div key={loc} style={{ marginTop: '8px' }}>
+                    <label
+                        className={s.hint}
+                        htmlFor={`locale-instruction-${loc}`}
+                    >
+                      {loc}
+                    </label>
+                    <ReactTextareaAutosize
+                        id={`locale-instruction-${loc}`}
+                        className={s.textarea}
+                        placeholder={`Custom instruction for ${loc} (optional)`}
+                        value={localeInstructions[loc] ?? ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLocaleInstructions({
+                            ...localeInstructions,
+                            ...(val
+                                ? { [loc]: val }
+                                : Object.fromEntries(
+                                    Object.entries(localeInstructions).filter(
+                                        ([k]) => k !== loc,
+                                    ),
+                                )),
+                          });
+                        }}
+                    />
+                  </div>
+              ))}
             </div>
         )}
 
@@ -1135,6 +1210,7 @@ export default function ConfigScreen({ ctx }: { ctx: RenderConfigScreenCtx }) {
                 setTranslateWholeRecord(true);
                 setTranslateBulkRecords(true);
                 setPrompt(defaultPrompt);
+                setLocaleInstructions({});
                 setModelsToBeExcluded([]);
                 setRolesToBeExcluded([]);
                 setApiKeysToBeExcluded([]);
@@ -1174,6 +1250,7 @@ export default function ConfigScreen({ ctx }: { ctx: RenderConfigScreenCtx }) {
                       translateWholeRecord,
                       translateBulkRecords,
                       prompt,
+                      localeInstructions,
                       modelsToBeExcludedFromThisPlugin: modelsToBeExcluded,
                       rolesToBeExcludedFromThisPlugin: rolesToBeExcluded,
                       apiKeysToBeExcludedFromThisPlugin: apiKeysToBeExcluded,

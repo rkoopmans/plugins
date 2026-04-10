@@ -97,8 +97,14 @@ export async function translateSeoFieldValue(
         recordContext || 'Record context: No additional context available.',
       );
 
+    // Append locale-specific instruction if configured
+    const localeInstruction = pluginParams.localeInstructions?.[toLocale];
+    const localeInstructionBlock = localeInstruction
+      ? `\nAdditional instruction for this locale: ${localeInstruction}`
+      : '';
+
     // Using template literal as per linting rules
-    const formattedPrompt = `${prompt}\n${fieldTypePrompt}`;
+    const formattedPrompt = `${prompt}\n${fieldTypePrompt}${localeInstructionBlock}`;
     logger.info('Formatted prompt prepared for translation');
     // Log prompt only when debugging is enabled
     logger.logPrompt('SEO translation prompt', formattedPrompt);

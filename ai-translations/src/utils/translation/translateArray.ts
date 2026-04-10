@@ -22,6 +22,7 @@ type Options = {
   isHTML?: boolean;
   formality?: 'default' | 'more' | 'less';
   recordContext?: string;
+  localeInstruction?: string;
 };
 
 /**
@@ -222,8 +223,13 @@ async function translateWithChatProvider(
   protectedSegments: string[],
   fromLocale: string,
   toLocale: string,
+  localeInstruction?: string,
 ): Promise<string[]> {
-  const instruction = `Translate the following array of strings from ${fromLocale} to ${toLocale}. Return ONLY a valid JSON array of the exact same length, preserving placeholders like {foo}, {{bar}}, and tokens like ⟦PH_0⟧. You may encounter ICU Message Format strings (e.g., {gender, select, male {He said} female {She said}}). You MUST preserve the structure, keywords, and variable keys exactly. ONLY translate the human-readable content inside the brackets. Do not explain.`;
+  let instruction = `Translate the following array of strings from ${fromLocale} to ${toLocale}. Return ONLY a valid JSON array of the exact same length, preserving placeholders like {foo}, {{bar}}, and tokens like ⟦PH_0⟧. You may encounter ICU Message Format strings (e.g., {gender, select, male {He said} female {She said}}). You MUST preserve the structure, keywords, and variable keys exactly. ONLY translate the human-readable content inside the brackets. Do not explain.`;
+
+  if (localeInstruction) {
+    instruction += `\nAdditional instruction for this locale: ${localeInstruction}`;
+  }
 
   if (protectedSegments.length <= CHAT_VENDOR_CHUNK_SIZE) {
     const prompt = `${instruction}\n${JSON.stringify(protectedSegments)}`;
@@ -290,11 +296,16 @@ export async function translateArray(
         opts,
       );
     } else {
+      const localeInstruction =
+        opts.localeInstruction ??
+        pluginParams.localeInstructions?.[toLocale] ??
+        undefined;
       out = await translateWithChatProvider(
         provider,
         protectedSegments,
         fromLocale,
         toLocale,
+        localeInstruction,
       );
     }
 

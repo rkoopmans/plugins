@@ -13,6 +13,7 @@ export interface FeatureToggleState {
   translateWholeRecord: boolean;
   translateBulkRecords: boolean;
   prompt: string;
+  localeInstructions: Record<string, string>;
   enableDebugging: boolean;
 }
 
@@ -21,6 +22,7 @@ export interface FeatureToggleActions {
   setTranslateWholeRecord: (value: boolean) => void;
   setTranslateBulkRecords: (value: boolean) => void;
   setPrompt: (prompt: string) => void;
+  setLocaleInstructions: (value: Record<string, string>) => void;
   setEnableDebugging: (value: boolean) => void;
   resetToDefaults: () => void;
 }
@@ -53,6 +55,15 @@ export function useFeatureToggles(
 
   const [prompt, setPrompt] = useState(pluginParams.prompt ?? defaultPrompt);
 
+  const [localeInstructions, setLocaleInstructions] = useState<
+    Record<string, string>
+  >(
+    pluginParams.localeInstructions &&
+      typeof pluginParams.localeInstructions === 'object'
+      ? pluginParams.localeInstructions
+      : {},
+  );
+
   const [enableDebugging, setEnableDebugging] = useState<boolean>(
     typeof pluginParams.enableDebugging === 'boolean'
       ? pluginParams.enableDebugging
@@ -64,6 +75,7 @@ export function useFeatureToggles(
     translateWholeRecord,
     translateBulkRecords,
     prompt,
+    localeInstructions,
     enableDebugging,
   };
 
@@ -81,12 +93,17 @@ export function useFeatureToggles(
       [],
     ),
     setPrompt: useCallback((p: string) => setPrompt(p), []),
+    setLocaleInstructions: useCallback(
+      (v: Record<string, string>) => setLocaleInstructions(v),
+      [],
+    ),
     setEnableDebugging: useCallback((v: boolean) => setEnableDebugging(v), []),
     resetToDefaults: useCallback(() => {
       setTranslationFields(Object.keys(translateFieldTypes));
       setTranslateWholeRecord(true);
       setTranslateBulkRecords(true);
       setPrompt(defaultPrompt);
+      setLocaleInstructions({});
     }, [defaultPrompt]),
   };
 
@@ -104,6 +121,7 @@ export function getFeatureToggleParams(
     translateWholeRecord: state.translateWholeRecord,
     translateBulkRecords: state.translateBulkRecords,
     prompt: state.prompt,
+    localeInstructions: state.localeInstructions,
     enableDebugging: state.enableDebugging,
   };
 }

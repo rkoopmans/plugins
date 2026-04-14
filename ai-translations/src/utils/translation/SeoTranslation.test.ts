@@ -384,6 +384,38 @@ describe('SeoTranslation', () => {
       });
     });
 
+    describe('source object immutability', () => {
+      it('should not mutate the original source SEO object', async () => {
+        vi.mocked(translateArray).mockResolvedValue([
+          'Deutscher Titel',
+          'Deutsche Beschreibung',
+        ]);
+
+        const seoObject: SeoObject = {
+          title: 'English Title',
+          description: 'English Description',
+          image: { id: 'image-123' },
+        };
+
+        const result = await translateSeoFieldValue(
+          seoObject,
+          mockPluginParams,
+          'de',
+          'en',
+          mockProvider,
+          '',
+        );
+
+        // The result should have translated values
+        expect(result.title).toBe('Deutscher Titel');
+        expect(result.description).toBe('Deutsche Beschreibung');
+
+        // The original source object must NOT be mutated
+        expect(seoObject.title).toBe('English Title');
+        expect(seoObject.description).toBe('English Description');
+      });
+    });
+
     describe('error handling', () => {
       it('should throw error when translation fails', async () => {
         vi.mocked(translateArray).mockRejectedValue(new Error('API Error'));

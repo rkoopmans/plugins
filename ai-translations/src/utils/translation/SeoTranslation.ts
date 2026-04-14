@@ -72,7 +72,7 @@ export async function translateSeoFieldValue(
     return { title: '', description: '' };
   }
 
-  const seoObject = fieldValue;
+  const seoObject = { ...fieldValue };
   const seoObjectToTranslate = {
     title: seoObject.title || '',
     description: seoObject.description || '',

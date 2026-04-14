@@ -23,6 +23,8 @@ type Options = {
   formality?: 'default' | 'more' | 'less';
   recordContext?: string;
   localeInstruction?: string;
+  /** Field-type-specific constraint or format instruction appended to the prompt. */
+  fieldTypeInstruction?: string;
 };
 
 /**
@@ -224,8 +226,13 @@ async function translateWithChatProvider(
   fromLocale: string,
   toLocale: string,
   localeInstruction?: string,
+  fieldTypeInstruction?: string,
 ): Promise<string[]> {
   let instruction = `Translate the following array of strings from ${fromLocale} to ${toLocale}. Return ONLY a valid JSON array of the exact same length, preserving placeholders like {foo}, {{bar}}, and tokens like ⟦PH_0⟧. You may encounter ICU Message Format strings (e.g., {gender, select, male {He said} female {She said}}). You MUST preserve the structure, keywords, and variable keys exactly. ONLY translate the human-readable content inside the brackets. Do not explain.`;
+
+  if (fieldTypeInstruction) {
+    instruction += `\n${fieldTypeInstruction}`;
+  }
 
   if (localeInstruction) {
     instruction += `\nAdditional instruction for this locale: ${localeInstruction}`;
@@ -306,6 +313,7 @@ export async function translateArray(
         fromLocale,
         toLocale,
         localeInstruction,
+        opts.fieldTypeInstruction,
       );
     }
 

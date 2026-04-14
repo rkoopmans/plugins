@@ -102,7 +102,7 @@ describe('DefaultTranslation', () => {
           ['Hello World'],
           'en',
           'de',
-          { isHTML: false, recordContext: '' },
+          { isHTML: false, recordContext: '', fieldTypeInstruction: '' },
         );
       });
 
@@ -125,7 +125,7 @@ describe('DefaultTranslation', () => {
           ['Original'],
           'en',
           'de',
-          { isHTML: false, recordContext: 'This is a product description' },
+          { isHTML: false, recordContext: 'This is a product description', fieldTypeInstruction: '' },
         );
       });
 

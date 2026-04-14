@@ -43,6 +43,7 @@ export async function translateDefaultFieldValue(
   provider: TranslationProvider,
   _streamCallbacks?: StreamCallbacks,
   recordContext = '',
+  fieldTypePrompt = '',
 ): Promise<unknown> {
   // If nothing to translate, return as is
   if (fieldValue === null || fieldValue === undefined || fieldValue === '') {
@@ -64,7 +65,7 @@ export async function translateDefaultFieldValue(
       [String(fieldValue)],
       fromLocale,
       toLocale,
-      { isHTML: false, recordContext },
+      { isHTML: false, recordContext, fieldTypeInstruction: fieldTypePrompt },
     );
     return translated;
   } catch (error) {

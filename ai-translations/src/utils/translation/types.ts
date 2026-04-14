@@ -7,10 +7,10 @@
 export type VendorId = 'openai' | 'google' | 'anthropic' | 'deepl';
 
 /**
- * Default timeout for API calls in milliseconds (2 minutes).
+ * Default timeout for API calls in milliseconds (10 minutes).
  * EDGE-002: Prevents requests from hanging indefinitely.
  */
-export const DEFAULT_API_TIMEOUT_MS = 120000;
+export const DEFAULT_API_TIMEOUT_MS = 600000;
 
 /**
  * Options passed to provider calls to control request lifecycle.

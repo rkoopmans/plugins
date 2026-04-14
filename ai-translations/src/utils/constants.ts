@@ -84,19 +84,19 @@ export const BLOCK_FIELDS_CACHE_MAX_SIZE = 100;
 
 /**
  * Default timeout for individual API calls in milliseconds.
- * Already defined in types.ts as DEFAULT_API_TIMEOUT_MS = 120000 (2 minutes).
+ * Already defined in types.ts as DEFAULT_API_TIMEOUT_MS = 600000 (10 minutes).
  * This is referenced here for documentation purposes.
  */
 // See types.ts: DEFAULT_API_TIMEOUT_MS = 120000
 
 /**
  * Maximum time in milliseconds to wait for a single field translation.
- * Intentionally large (5 minutes) to accommodate:
+ * Intentionally large (20 minutes) to accommodate:
  * - Large structured text fields with many blocks
  * - Complex nested modular content
  * - Rate-limited API responses that take time to complete
  */
-export const FIELD_TRANSLATION_TIMEOUT_MS = 300000; // 5 minutes
+export const FIELD_TRANSLATION_TIMEOUT_MS = 1200000; // 20 minutes
 
 // ============================================================================
 // DeepL Constants

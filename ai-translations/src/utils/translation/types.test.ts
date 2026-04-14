@@ -14,8 +14,8 @@ import {
 
 describe('types.ts', () => {
   describe('DEFAULT_API_TIMEOUT_MS', () => {
-    it('should be 2 minutes (120000ms)', () => {
-      expect(DEFAULT_API_TIMEOUT_MS).toBe(120000);
+    it('should be 10 minutes (600000ms)', () => {
+      expect(DEFAULT_API_TIMEOUT_MS).toBe(600000);
     });
   });
 

@@ -116,7 +116,11 @@ export async function translateSeoFieldValue(
       [seoObjectToTranslate.title, seoObjectToTranslate.description],
       fromLocale,
       toLocale,
-      { isHTML: false, recordContext },
+      {
+        isHTML: false,
+        recordContext,
+        fieldTypeInstruction: `These are SEO fields. The first string is a page title (MUST be ${SEO_TITLE_MAX_LENGTH} characters or less). The second string is a meta description (should be ${SEO_DESCRIPTION_MAX_LENGTH} characters or less).`,
+      },
     );
     const returnedSeoObject: SeoObject = { title: titleT, description: descT };
 

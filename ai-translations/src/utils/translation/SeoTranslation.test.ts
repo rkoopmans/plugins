@@ -120,7 +120,7 @@ describe('SeoTranslation', () => {
           ['Title EN', 'Desc EN'],
           'en',
           'de',
-          { isHTML: false, recordContext: '' },
+          expect.objectContaining({ isHTML: false, recordContext: '' }),
         );
       });
 
@@ -195,7 +195,7 @@ describe('SeoTranslation', () => {
           ['Title', 'Desc'],
           'en',
           'de',
-          { isHTML: false, recordContext: 'Product page SEO' },
+          expect.objectContaining({ isHTML: false, recordContext: 'Product page SEO' }),
         );
       });
     });

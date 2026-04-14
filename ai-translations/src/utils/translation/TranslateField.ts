@@ -427,6 +427,7 @@ export async function translateFieldValue(
         provider,
         streamCallbacks,
         recordContext,
+        fieldTypePrompt,
       );
       break;
   }

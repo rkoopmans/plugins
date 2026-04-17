@@ -22,13 +22,16 @@ vi.mock('./DefaultTranslation', () => ({
   translateDefaultFieldValue: vi.fn(),
 }));
 
-vi.mock('./translateArray', () => ({
-  translateArray: vi.fn(),
-}));
+vi.mock('./translateArray', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./translateArray')>();
+  return {
+    ...actual,
+    translateArray: vi.fn(),
+  };
+});
 
 import { translateDefaultFieldValue } from './DefaultTranslation';
 import { generateRecordContext, translateFieldValue } from './TranslateField';
-import { translateArray } from './translateArray';
 
 describe('TranslateField', () => {
   const pluginParams: ctxParamsType = {
@@ -93,7 +96,12 @@ describe('TranslateField', () => {
   });
 
   it('removes only wrapper ids from block payloads while preserving nested metadata ids', async () => {
-    vi.mocked(translateArray).mockResolvedValue(['Clicca qui']);
+    // The rich_text field's nested structured_text now travels through the
+    // whole-field markup path; simulate the model returning translated markup
+    // rather than leaf-level arrays.
+    vi.mocked(provider.completeText).mockResolvedValue(
+      '⟦B1:p⟧⟦M2:link⟧Clicca qui⟦/M2⟧⟦/B1⟧',
+    );
 
     const result = (await translateFieldValue(
       [
